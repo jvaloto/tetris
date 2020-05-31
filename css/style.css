@@ -1,14 +1,15 @@
 .table{
     width: 100%;
     height: 100%;
+    border: 1px solid;
 }
 
 .table .row{
-    border: 1px solid;
+    height: 50px;
 }
 
 .table .col{
-    border: 1px solid;
+    width: 50px;
 }
 
 .active{

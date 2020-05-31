@@ -1,11 +1,12 @@
 class Block{
 
-    constructor(h,v){
-        this._h = h;
-        this._v = v;
+    constructor(row, col, isActive){
+        this._row = row;
+        this._col = col;
+        this._isActive = isActive;
 
-        let letters = '0123456789ABCDEF';
         let color = '#';
+        let letters = '0123456789ABCDEF';
 
         for (var i = 0; i < 6; i++) {
             color += letters[Math.floor(Math.random() * 16)];
@@ -14,23 +15,35 @@ class Block{
         this._color = color;
     }
 
-    get h(){
-        return this._h;
+    get col(){
+        return this._col;
     }
 
-    get v(){
-        return this._v;
+    get row(){
+        return this._row;
     }
 
     get color(){
-        return this._color;
+        if(this._isActive){
+            return this._color;
+        }else{
+            return "#fff";
+        }
     }
 
-    moveHorizontal(h){
-        this._h += h;
+    set isActive(value){
+        this._isActive = value;
     }
 
-    moveVertical(v){
-        this._v += v;
+    get isActive(){
+        return this._isActive;
+    }
+
+    moveCol(qtd){
+        this._col += qtd;
+    }
+
+    moveRow(qtd){
+        this._row += qtd;
     }
 }

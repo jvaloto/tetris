@@ -29,9 +29,11 @@ let page = {
     // COLUMNS: 10
     // , ROWS: 20
     COLUMNS: 4
-    , ROWS: 10
-    , HORIZONTAL_START: 2
-    , VERTICAL_START: 0
+    , ROWS: 4
+    , HORIZONTAL_START: 0
+    , VERTICAL_START: 2
+    , actualRow: null
+    , actualCol: null
     , table: null
     , block: null
     , blocks: null
@@ -40,25 +42,40 @@ let page = {
         let that = this;
 
         that.table = $("#tetrisTable");
-        that.blocks = new Array();
-
-        that.newBlock();
-        
-
-        that.createTest();
-
-        $("body").keydown(function() {
-            that.move(event.keyCode);
-        });
 
         that.drawTable();
 
+        that.createBlocks();
+
+        that.createTest();
+
+        $("body").keydown(function(){
+            that.move(event.keyCode);
+        });
+
         that.start();
+    }
+    , createBlocks: function(){
+        let that = this;
+
+        that.blocks = new Array();
+
+        for(let r = 0; r < that.ROWS; r ++){
+            that.blocks[r] = new Array();
+
+            for(let c = 0; c < that.COLUMNS; c ++){
+                that.blocks[r][c] = false;
+            }
+        }
     }
     , createTest: function(){
         let that = this;
 
-        that.blocks.push(new Block(0, 0));
+        that.blocks[3][0] = true;
+        that.blocks[3][1] = true;        
+        that.blocks[3][3] = true;
+
+       /* that.blocks.push(new Block(0, 0));
         that.blocks.push(new Block(1, 0));
         that.blocks.push(new Block(2, 0));
         that.blocks.push(new Block(3, 0));
@@ -77,15 +94,27 @@ let page = {
         that.blocks.push(new Block(0, 4));
         that.blocks.push(new Block(1, 4));
         that.blocks.push(new Block(2, 4));
-        that.blocks.push(new Block(3, 4));   
+        that.blocks.push(new Block(3, 4));   */
     }
     , newBlock: function(){
         let that = this;
 
-        that.block = new Block(that.HORIZONTAL_START, that.VERTICAL_START);
+        that.blocks[that.HORIZONTAL_START][that.VERTICAL_START] = true;
+
+        that.actualRow = that.HORIZONTAL_START;
+        that.actualCol = that.VERTICAL_START;
+    }
+    , addBlock: function(){
+        let that = this;
+
+        //that.blocks.push(that.block);
     }
     , start: function(){
         let that = this;
+
+        that.newBlock();
+
+        that.drawBlocks();
 
         // let index = 0;
 
@@ -116,10 +145,8 @@ let page = {
 
             that.table.append(tr);
         }
-
-        that.drawBlocks();
     }
-    , addRowTable: function(qtd){
+   /* , addRowTable: function(qtd){
         let that = this;
 
         for(let i = 0; i < qtd; i ++){   
@@ -133,43 +160,52 @@ let page = {
 
             that.table.prepend(tr);
         }
-    }
+    }*/
     , drawBlocks: function(){
         let that = this;
 
-        that.blocks.forEach(block =>{
-            let td = $($(that.table.children()[block.v]).children()[block.h]);
-            td.css("background-color", block.color);
-            td.addClass("active"); //TODO: change to data-
-        });
+        for(let r = 0; r < that.ROWS; r ++){
+            for(let c = 0; c < that.COLUMNS; c ++){
+                let isActive = that.blocks[r][c];
 
-        let td = $($(that.table.children()[that.block.v]).children()[that.block.h]);
-        td.css("background-color", that.block.color);
-        td.addClass("active"); //TODO: change to data-
+                let td = $($(that.table.children()[r]).children()[c]);
+    
+                if(isActive){
+                    td.addClass("active"); //TODO: change to data-
+
+                    td.css("background-color", "blue");
+                }else{
+                    td.removeClass("active"); //TODO: change to data-
+
+                    td.css("background-color", "#fff");
+                }
+            }
+        }        
     }
     , verifyLine: function(){
         let that = this;
 
-        let newArray = new Array();
-        let currentLine = 0;
-        
-        that.table.children().toArray().forEach( line =>{
-            if($(line).find( $("td.active" )).length == that.COLUMNS){
-                console.log(currentLine);
+        let currentRow = 0;
 
-                newArray.unshift();
-                
-                // $(line).fadeOut(1000, function(){
-                    //     that.addRowTable(1);
-                    // });
-            }else{
+        that.table.children().toArray().forEach( forLine =>{
+            if($(forLine).find( $("td.active" )).length == that.COLUMNS){
+                 $(forLine).fadeOut(800, function(){
+                    for(let c = 0; c < that.COLUMNS; c ++){
+                        that.blocks[currentRow - 1][c] = false;
+                    }
 
+                    that.newBlock();
+
+                    that.drawTable();
+
+                    that.drawBlocks();
+                });
             }
 
-            currentLine ++;
+            currentRow ++;
         });
 
-        that.blocks = newArray;
+        
     }
     , move: function(key){
         let that = this;
@@ -179,30 +215,83 @@ let page = {
         let KEY_RIGHT = 39;
         let KEY_DOWN = 40;
 
+        let moved = false;
+        let previousRow = that.actualRow;
+        let previousCol = that.actualCol;
+
         if(key == KEY_UP){
-            if(that.block.v > 0){
-                that.block.moveVertical(-1);
+            if(that.actualRow > 0){
+                moved = true;
+
+                that.actualRow --;
             }
         }else if(key == KEY_LEFT){
-            if(that.block.h > 0){
-                that.block.moveHorizontal(-1);
+            if(that.actualCol > 0){
+                moved = true;
+
+                that.actualCol --;
             }
         }else if(key == KEY_RIGHT){
-            if(that.block.h < (that.COLUMNS-1)){
-                that.block.moveHorizontal(1);
+            if(that.actualCol < (that.COLUMNS-1)){
+                moved = true;
+
+                that.actualCol ++;
             }
         }else if(key == KEY_DOWN){
-            if(that.block.v == (that.ROWS -1)){
-                that.blocks.push(that.block);
+            if(that.actualRow < (that.ROWS -1)){
+                moved = true;
 
-                that.verifyLine();
-
-                that.newBlock();
-            }else{
-                that.block.moveVertical(1);
+                that.actualRow ++;
             }
         }
 
-        that.drawTable();
+        if(moved){
+            that.blocks[previousRow][previousCol] = false;
+
+            that.blocks[that.actualRow][that.actualCol] = true;
+        }
+
+        that.check();
+    }
+    , check: function(){
+        let that = this;
+
+        that.drawBlocks();
+
+        that.verifyColision();
+    }
+    , verifyColision: function(){
+        let that = this;
+
+        //TODO: check if is the last line = game over
+
+        let newBlock = false;
+
+        if(that.actualRow == (that.ROWS - 1)){
+            newBlock = true;
+        }else{
+            if(that.blocks[that.actualRow + 1][that.actualCol]){
+                newBlock = true;
+            }
+        }
+
+        if(newBlock){
+            that.newBlock();
+        }
+
+        that.verifyLine();
+    }
+    , print: function(){
+        let that = this;
+
+        for(let r = 0; r < that.ROWS; r ++){
+            let s = "";
+
+            for(let c = 0; c < that.COLUMNS; c ++){
+                s += that.blocks[r][c] + "\t";
+            }
+
+            console.log(s);
+        }
     }
 }
